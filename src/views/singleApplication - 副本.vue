@@ -4,6 +4,8 @@
         </bui-header>
         <div class='guarantee'>
             <bui-image src="/image/c.png" width="750px" :height="height" @click='aa'></bui-image>
+            <bui-image src="/image/c.png" width="750px" :height="height" @click='bb'></bui-image>
+            <bui-image src="/image/c.png" width="750px" :height="height" @click='cc'></bui-image>
         </div>
     </div>
 </template>
@@ -11,7 +13,6 @@
 <script>
 const dom = weex.requireModule("dom");
 const link = weex.requireModule("LinkModule");
-const StepCounter = weex.requireModule("StepCounter");
 const linkapi = require("linkapi");
 export default {
     data() {
@@ -39,11 +40,54 @@ export default {
         },
         aa() {
             var that = this
-            StepCounter.getTodayStepCount({}, (res) => {
-                this.$alert(res);
+            link.getToken(
+                [{ "grantType": "token_tenant_credentials", "eCode": that.urlParams.eCode }],
+                res => {
+                    linkapi.get({
+                        url: "http://link-dev.bingosoft.net/appapi/v2/escategory/with/escount?terminalType=1",
+                        method: "GET",
+                        headers: {
+                            Authorization: 'Bearer ' + res.accessToken
+                        },
+                        data: {},
+                        timeout: 5000,
+                        success: function (result) {
+                            that.$alert(result);
+                        },
+                        fail: function (error) {
+                            that.$alert(error);
+                        }
+                    });
+                },
+                err => {
+                    that.$alert(err);
+                }
+            );
+        },
+        bb() {
+            var that = this
+            link.refreshToken([{ "grantType": "token_tenant_credentials", "eCode": that.urlParams.eCode }], function (res) {
+                linkapi.get({
+                    url: "http://link-dev.bingosoft.net/appapi/v2/escategory/with/escount?terminalType=1",
+                    method: "GET",
+                    headers: {
+                        Authorization: 'Bearer ' + res.accessToken
+                    },
+                    data: {},
+                    timeout: 5000,
+                    success: function (result) {
+                        that.$alert(result);
+                    },
+                    fail: function (error) {
+                        that.$alert(error);
+                    }
+                });
             }, (err) => {
-                this.$alert(err);
-            });
+                that.$alert(err);
+            })
+        },
+        cc() {
+            this.$alert(this.urlParams);
         },
         getComponentRect(_params) {
             var that = this
