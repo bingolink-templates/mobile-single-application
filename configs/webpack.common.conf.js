@@ -140,6 +140,7 @@ const getBaseConfig = () => ({
             'src' : helper.resolve('src'),
             'css' : helper.resolve('src/css'),
             "views": helper.resolve('src/views'),
+            "ser":  helper.resolve('src/service')
         }
     },
     module: {

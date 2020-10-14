@@ -1,6 +1,6 @@
 <template>
     <div ref="wrap">
-        <bui-header title="哈哈哈" :leftItem="leftItem" @leftClick="back">
+        <bui-header title="getToken-refreshToken" :leftItem="leftItem" @leftClick="back">
         </bui-header>
         <div class='guarantee'>
             <bui-image src="/image/c.png" width="750px" :height="height" @click='aa'></bui-image>

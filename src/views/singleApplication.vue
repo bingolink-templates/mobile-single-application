@@ -1,91 +1,75 @@
 <template>
-    <div ref="wrap">
-        <bui-header title="哈哈哈" :leftItem="leftItem" @leftClick="back">
-        </bui-header>
-        <div class='guarantee'>
-            <bui-image src="/image/c.png" width="750px" :height="height" @click='aa'></bui-image>
+    <div ref="wrap" class="main">
+        <!-- 我的应用 -->
+        <div class="my-apply">
+            <bui-header title="首页">
+            </bui-header>
+            <div>
+                <div class="list-item flex-ww flex-dr" v-if='applyList.length!=0'>
+                    <div class="flex-ac item-content" v-for="(item, index) in applyList" :key='index' @click='myAllpyEvent(item)'>
+                        <bui-image placeholder='/image/ic_service_default.png' src="/image/ic_service_default.png" width="30wx" height="30wx" @click='myAllpyEvent(item)'>
+                        </bui-image>
+                        <text class="c0 f24 h37 mt15 lines1" v-if='item.name'>{{item.name}}</text>
+                    </div>
+                </div>
+            </div>
         </div>
+        <LinkApp v-for="(app, i) in appItems" :key="i" ref='app.js?isTabApp=1' v-if="app.code" :code='app.code' :url='app.url' class="linkapp"></LinkApp>
     </div>
 </template>
 
 <script>
-const dom = weex.requireModule("dom");
+const dom = weex.requireModule('dom');
 const link = weex.requireModule("LinkModule");
-const StepCounter = weex.requireModule("StepCounter");
-const linkapi = require("linkapi");
+const linkapi = require('linkapi');
+const storage = weex.requireModule('storage');
+const globalEvent = weex.requireModule('globalEvent');
+const navigator = weex.requireModule('navigator');
 export default {
     data() {
         return {
-            height: '317px',
-            channel: new BroadcastChannel("WidgetsMessage"),
-            urlParams: {},
-            eCode: '',
-            leftItem: {
-                icon: 'ion-chevron-left',
-            },
+            applyList: [],
+            appItems: []
         }
     },
     created() {
-        this.height = this.$isIPad ? '159wx' : '317px'
+        globalEvent.addEventListener("androidback", function (e) {
+            navigator.close()
+        });
+        this.applyList.push({
+            name: '示例weex应用',
+            code: 'signins'
+        })
+        linkapi.registerReceiverEvent('weexBackEvent', (res) => {
+            if (res.code) {
+                for (let index = 0; index < this.appItems.length; index++) {
+                    if (this.appItems[index].code == res.code) {
+                        this.appItems.splice(index, 1)
+                    }
+                }
+            } else {
+                navigator.close()
+            }
+        }, (success) => {
+        }, (err) => {
+        })
+        linkapi.registerReceiverEvent('weexAppEvent', (res) => {
+            this.appItems.push({
+                code: res.code,
+                url: res.url
+            })
+        }, (success) => {
+        }, (err) => {
+        })
     },
     mounted() {
-        this.broadcastWidgetHeight()
-        this.urlParams = this.resolveUrlParams(weex.config.bundleUrl)
     },
     methods: {
-        back: function () {
-            // 返回上一个页面
-            this.$pop();
-        },
-        aa() {
-            var that = this
-            StepCounter.getTodayStepCount({}, (res) => {
-                this.$alert(res);
-            }, (err) => {
-                this.$alert(err);
-            });
-        },
-        getComponentRect(_params) {
-            var that = this
-            dom.getComponentRect(this.$refs.wrap, (ret) => {
-                this.channel.postMessage({
-                    widgetHeight: ret.size.height,
-                    id: _params.id
-                });
-            });
-        },
-        resolveUrlParams(url) {
-            // let url = weex.config.bundleUrl;
-            if (!url) return {};
-            url = url + "";
-            var index = url.indexOf("?");
-            if (index > -1) {
-                url = url.substring(index + 1, url.length);
-            }
-            var pairs = url.split("&"),
-                params = {};
-            for (var i = 0; i < pairs.length; i++) {
-                var pair = pairs[i];
-                var indexEq = pair.indexOf("="),
-                    key = pair,
-                    value = null;
-                if (indexEq > 0) {
-                    key = pair.substring(0, indexEq);
-                    value = pair.substring(indexEq + 1, pair.length);
-                }
-                params[key] = value;
-            }
-            return params;
-        },
-        broadcastWidgetHeight() {
-            let _params = this.$getPageParams();
-            // 防止高度通知失败
-            setTimeout(() => {
-                this.getComponentRect(_params)
-            }, 200)
-            setTimeout(() => {
-                this.getComponentRect(_params)
-            }, 1200)
+        myAllpyEvent(item) {
+            this.appItems.push({
+                code: item.code,
+                url: 'app.js?code=signins'
+            })
         }
     }
 }
@@ -93,7 +77,45 @@ export default {
 
 <style lang="css" src="../css/common.css"></style>
 <style>
-.guarantee {
-    background: #fff;
+.linkapp {
+    position: fixed;
+    left: 0px;
+    right: 0px;
+    top: 0px;
+    bottom: 0px;
+}
+.my-apply {
+    background-color: #fff;
+}
+.apply-title {
+    height: 44wx;
+    padding: 0 12wx;
+    border-bottom: 1px solid #f2f2f2;
+}
+.title {
+    justify-content: flex-start;
+    flex-direction: row;
+    align-content: center;
+    align-items: center;
+}
+
+.line {
+    width: 5px;
+    height: 36px;
+    margin-right: 12px;
+}
+.list-item {
+    justify-content: space-between;
+    padding-bottom: 15wx;
+}
+.item-content {
+    width: 90wx;
+    margin-top: 15wx;
+}
+.no-content {
+    height: 83wx;
+}
+.center-height {
+    line-height: 20wx;
 }
 </style>
