@@ -2,7 +2,9 @@
     <div ref="wrap" class="main">
         <!-- 我的应用 -->
         <div class="my-apply">
-            <bui-header title="首页">
+            <bui-header title="示例1页面" :leftItem="{
+                icon: 'ion-chevron-left',
+            }" @leftClick="back">
             </bui-header>
             <div>
                 <div class="list-item flex-ww flex-dr" v-if='applyList.length!=0'>
@@ -14,7 +16,6 @@
                 </div>
             </div>
         </div>
-        <LinkApp v-for="(app, i) in appItems" :key="i" ref='app.js?isTabApp=1' v-if="app.code" :code='app.code' :url='app.url' class="linkapp"></LinkApp>
     </div>
 </template>
 
@@ -29,47 +30,60 @@ export default {
     data() {
         return {
             applyList: [],
-            appItems: []
+            urlParams: {}
         }
     },
     created() {
         globalEvent.addEventListener("androidback", function (e) {
             navigator.close()
         });
+        this.urlParams = this.resolveUrlParams(weex.config.bundleUrl)
         this.applyList.push({
-            name: '示例weex应用',
-            code: 'signins'
-        })
-        linkapi.registerReceiverEvent('weexBackEvent', (res) => {
-            if (res.code) {
-                for (let index = 0; index < this.appItems.length; index++) {
-                    if (this.appItems[index].code == res.code) {
-                        this.appItems.splice(index, 1)
-                    }
-                }
-            } else {
-                navigator.close()
-            }
-        }, (success) => {
-        }, (err) => {
-        })
-        linkapi.registerReceiverEvent('weexAppEvent', (res) => {
-            this.appItems.push({
-                code: res.code,
-                url: res.url
-            })
-        }, (success) => {
-        }, (err) => {
+            name: '示例weex应用2',
+            code: 'signinsTwo'
+        }, {
+            name: '示例bt应用',
+            code: 'signinsThree'
         })
     },
     mounted() {
     },
     methods: {
         myAllpyEvent(item) {
-            this.appItems.push({
+            linkapi.sendBroadcast('weexAppEvent', {
                 code: item.code,
-                url: 'app.js?code=signins'
+                url: item.code == 'signinsThree' ? 'index.html?code=' + item.code : 'app.js?code=' + item.code
+            }, (success) => {
+            }, (err) => {
             })
+        },
+        back: function () {
+            linkapi.sendBroadcast('weexBackEvent', { code: this.urlParams.code }, (success) => {
+            }, (err) => {
+            })
+        },
+        resolveUrlParams(url) {
+            // let url = weex.config.bundleUrl;
+            if (!url) return {};
+            url = url + "";
+            var index = url.indexOf("?");
+            if (index > -1) {
+                url = url.substring(index + 1, url.length);
+            }
+            var pairs = url.split("&"),
+                params = {};
+            for (var i = 0; i < pairs.length; i++) {
+                var pair = pairs[i];
+                var indexEq = pair.indexOf("="),
+                    key = pair,
+                    value = null;
+                if (indexEq > 0) {
+                    key = pair.substring(0, indexEq);
+                    value = pair.substring(indexEq + 1, pair.length);
+                }
+                params[key] = value;
+            }
+            return params;
         }
     }
 }
